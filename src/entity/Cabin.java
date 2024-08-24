@@ -18,11 +18,11 @@ public class Cabin {
         RACSeats = new ArrayList<>();
 
         this.sleeperSeats.add(new SleeperSeat(Berth.UPPER_BERTH));
-        this.sleeperSeats.add(new SleeperSeat(Berth.UPPER_BERTH));
+//        this.sleeperSeats.add(new SleeperSeat(Berth.UPPER_BERTH));
         this.sleeperSeats.add(new SleeperSeat(Berth.MIDDLE_BERTH));
-        this.sleeperSeats.add(new SleeperSeat(Berth.MIDDLE_BERTH));
+//        this.sleeperSeats.add(new SleeperSeat(Berth.MIDDLE_BERTH));
         this.sleeperSeats.add(new SleeperSeat(Berth.LOWER_BERTH));
-        this.sleeperSeats.add(new SleeperSeat(Berth.LOWER_BERTH));
+//        this.sleeperSeats.add(new SleeperSeat(Berth.LOWER_BERTH));
         this.sleeperSeats.add(new SleeperSeat(Berth.SIDE_UPPER_BERTH));
 
         this.RACSeats.add(new RACSeat(Berth.LOWER_BERTH));

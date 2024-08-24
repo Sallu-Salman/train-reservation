@@ -103,14 +103,16 @@ public class BookingApplication {
                 continue;
             }
 
-            if(berthMap.get(pas.availableBerth) == null) {
+            if(!berthMap.containsKey(pas.availableBerth)) {
                 berthMap.put(pas.availableBerth, new LinkedList<>());
             }
 
             berthMap.get(pas.availableBerth).offer(pas);
         }
 
-        bookCNFseats(berthMap, ticket);
+        int startCabin = getNearbySeats(berthMap);
+
+        bookCNFseats(berthMap, ticket, startCabin);
         if(berthMap.isEmpty()) {
             return ticket;
         }
@@ -126,6 +128,61 @@ public class BookingApplication {
         appendPassengersToWaitingList(notConfirmedPassengers, ticket);
         return ticket;
     }
+
+    private static int getNearbySeats(Map<Berth, Queue<PassengerDTO>> berthMap) {
+        Map<Berth, Integer> countMap = new HashMap<>();
+
+        for(Berth berth: berthMap.keySet()) {
+            countMap.put(berth, berthMap.get(berth).size());
+        }
+
+        //sliding window technique
+
+        int minNearby = Integer.MAX_VALUE;
+        int startCabin = 0;
+
+        int i = 0, j = 0, n = Database.train.size();
+
+        while(j < n) {
+            adjustCountMap(countMap, j, -1);
+
+            while(isCountMapEmpty(countMap) && i <= j) {
+                if(minNearby > (j-i+1)) {
+                    startCabin = i;
+                    minNearby = j - i + 1;
+                }
+                adjustCountMap(countMap, i, 1);
+                i++;
+            }
+            j++;
+        }
+
+        return startCabin;
+    }
+
+    private static void adjustCountMap(Map<Berth, Integer> countMap, int cabinIndex, int sign) {
+        for(Seat seat: Database.train.get(cabinIndex).sleeperSeats) {
+            if(seat.passenger == null) {
+                if(countMap.containsKey(seat.berth)) {
+                    countMap.put(seat.berth, countMap.get(seat.berth) + sign);
+                }
+                else if(countMap.containsKey(Berth.GENERAL_BERTH)) {
+                    countMap.put(Berth.GENERAL_BERTH, countMap.get(Berth.GENERAL_BERTH) + sign);
+                }
+            }
+        }
+    }
+
+    private static boolean isCountMapEmpty(Map<Berth, Integer> countMap) {
+        for(Berth berth: countMap.keySet()) {
+            if(countMap.get(berth) > 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
     private static void appendPassengersToWaitingList(Queue<PassengerDTO> notConfirmedPassengers, Ticket ticket) {
         while (!notConfirmedPassengers.isEmpty()) {
@@ -151,12 +208,13 @@ public class BookingApplication {
         }
     }
 
-    private static void bookCNFseats(Map<Berth, Queue<PassengerDTO>> berthMap, Ticket ticket) {
-        Database.train.forEach(cabin -> {
+    private static void bookCNFseats(Map<Berth, Queue<PassengerDTO>> berthMap, Ticket ticket, int startCabin) {
+        for(int i = startCabin; i < Database.train.size(); i++) {
+            Cabin cabin = Database.train.get(i);
             cabin.sleeperSeats.forEach(seat -> {
                 if(seat.passenger == null) {
                     if(berthMap.containsKey(seat.berth)) {
-                        Passenger passenger = createPassengerForPassengerDTO(berthMap.get(seat.berth).poll());
+                        Passenger passenger = createPassengerForPassengerDTO(Objects.requireNonNull(berthMap.get(seat.berth).poll()));
                         if(berthMap.get(seat.berth).isEmpty()) {
                             berthMap.remove(seat.berth);
                         }
@@ -164,7 +222,7 @@ public class BookingApplication {
                         ticket.passengers.add(passenger);
                     }
                     else if(berthMap.containsKey(Berth.GENERAL_BERTH) && !berthMap.get(Berth.GENERAL_BERTH).isEmpty()){
-                        Passenger passenger = createPassengerForPassengerDTO(berthMap.get(Berth.GENERAL_BERTH).poll());
+                        Passenger passenger = createPassengerForPassengerDTO(Objects.requireNonNull(berthMap.get(Berth.GENERAL_BERTH).poll()));
                         if(berthMap.get(Berth.GENERAL_BERTH).isEmpty()) {
                             berthMap.remove(Berth.GENERAL_BERTH);
                         }
@@ -173,7 +231,7 @@ public class BookingApplication {
                     }
                 }
             });
-        });
+        }
     }
 
     private static void allotSeatForPassenger(Passenger passenger, Seat seat) {

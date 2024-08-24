@@ -12,7 +12,7 @@ public class Utilities {
     static Scanner scan = new Scanner(System.in);
 
     public static void driverCode() {
-        int cabinCount = 1;
+        int cabinCount = 4;
         AvailabilityCount.TOTAL_WAITING_LIST = 1;
         for(int i = 0; i < cabinCount; i++) {
             Database.addCabin();

@@ -19,6 +19,7 @@ public class BookingApplication {
             System.out.println("1. Book Ticket");
             System.out.println("2. Cancel Ticket");
             System.out.println("3. View Ticket");
+            System.out.println("4. View Chart");
             System.out.println();
             System.out.print("Enter your choice: ");
             int choice = readInt();
@@ -33,9 +34,20 @@ public class BookingApplication {
                 case 3:
                     //view ticket
                     break;
+                case 4:
+                    viewChart();
+                    break;
                 default:
                     break application;
             }
+        }
+    }
+
+    private static void viewChart() {
+        System.out.println();
+        System.out.println("Chart\n=====\n");
+        for(Cabin cabin: Database.train) {
+            System.out.println(cabin);
         }
     }
 

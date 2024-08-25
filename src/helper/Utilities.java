@@ -26,4 +26,9 @@ public class Utilities {
     public static String readStr() {
         return scan.nextLine();
     }
+
+    public static void halt() {
+        System.out.println("Press Enter to continue...");
+        scan.nextLine();
+    }
 }

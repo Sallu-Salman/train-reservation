@@ -1,12 +1,12 @@
 import constants.Berth;
 import dto.PassengerDTO;
-import entity.Cabin;
-import entity.Passenger;
-import entity.Seat;
-import entity.Ticket;
+import entity.*;
 import repository.Database;
 
+import javax.xml.crypto.Data;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static helper.Utilities.*;
 
@@ -29,7 +29,7 @@ public class BookingApplication {
                     processTicketBooking();
                     break;
                 case 2:
-                    // cancel ticket
+                    processTicketCancellation();
                     break;
                 case 3:
                     //view ticket
@@ -40,7 +40,53 @@ public class BookingApplication {
                 default:
                     break application;
             }
+            halt();
         }
+    }
+
+    private static void processTicketCancellation() {
+        System.out.println("Ticket Cancellation\n");
+        System.out.print("Enter PNR number: ");
+
+        int pnrNumber = readInt();
+        Ticket ticket = Database.getTicketById(pnrNumber);
+
+        if(ticket == null) {
+            System.out.println("Invalid PNR number");
+            return;
+        }
+
+        // prompt for passenger id..
+
+        System.out.println(ticket);
+        System.out.print("Enter the passenger id(s) to cancel: ");
+        String cancelIdString = readStr();
+        Set<Integer> cancellationIds = Arrays.stream(cancelIdString.split(","))
+                .map(String::trim)
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+        // cancel it
+
+        for(Passenger passenger: ticket.passengers) {
+            if(cancellationIds.contains(passenger.id)) {
+                if(passenger.age < 5) {
+                    //child passenger. just mark as cancelled
+                }
+                else if(passenger.allotedSeat == null) {
+                    //function removeWLPassenger(passenger)
+                }
+                else if(passenger.allotedSeat instanceof RACSeat) {
+                    // remove from rac queue
+                    //mark passenger as cancelled
+                    // function promoteWL(racSeat)--> call removeWLPassenger(passenger)
+                }
+                else {
+                    //mark passenger as cancelled
+                    // function promoteRAC(sleeperSeat) --> call promoteWL(racSeat)
+                }
+            }
+        }
+        // pull RAC replace, WL replace..
     }
 
     private static void viewChart() {
@@ -101,6 +147,7 @@ public class BookingApplication {
 
         preprocessBerthPreference(passengers);
         Ticket ticket = confirmBooking(passengers);
+        Database.tickets.add(ticket);
         System.out.println("\nBooking successful!\n");
         System.out.println(ticket);
     }
@@ -211,6 +258,7 @@ public class BookingApplication {
                     Passenger passenger = createPassengerForPassengerDTO(passengerDTOQueue.poll());
                     allotSeatForPassenger(passenger, seat);
                     ticket.passengers.add(passenger);
+                    Database.RACList.offer(passenger);
 
                     if(passengerDTOQueue.isEmpty()) {
                         return;

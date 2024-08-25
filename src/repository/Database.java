@@ -11,12 +11,23 @@ import java.util.Queue;
 
 public class Database {
     public static Queue<Passenger> waitingList = new LinkedList<>();
+    public static Queue<Passenger> RACList = new LinkedList<>();
     public static List<Cabin> train = new ArrayList<>();
+    public static List<Ticket> tickets = new ArrayList<>();
 
     public static void addCabin() {
         train.add(new Cabin());
     }
 
+    public static Ticket getTicketById(int id) {
+        for(Ticket ticket: tickets) {
+            if(ticket.pnr == id) {
+                return ticket;
+            }
+        }
+
+        return null;
+    }
     public static long getUpperBerthAvailability() {
         long count = 0;
         for(Cabin cabin: train) {
